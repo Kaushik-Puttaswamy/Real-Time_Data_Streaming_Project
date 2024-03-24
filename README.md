@@ -108,7 +108,7 @@ command to describes the keyspace named transaction_data:
 
 ```DESCRIBE transaction_data;```
 
-command to selects the keyspace named transaction_data:
+command will select the keyspace named transaction_data for subsequent queries:
 
 ```USE transaction_data;```
 
@@ -120,7 +120,7 @@ command selects all data from the table named transaction_data_table within the 
 
 ```select * from transaction_data.transaction_data_table;```
 
-You can also execute the following command to view the total data in the table:
+command will give you the total count of rows in the table transaction_data_table:
 
 ```SELECT COUNT(*) FROM transaction_data_table;```
 
