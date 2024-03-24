@@ -125,6 +125,11 @@ You can also monitor the data flow using Kafka’s Control Center and Spark’s 
 
 Make sure that Docker and Docker Compose are installed on your system.
 
+**Manually Download the transaction_data.csv File**: Visit the `data` folder in this repository and download the `transaction_data.csv` file.
+
+**Replace the Existing File**: After downloading, move or copy the downloaded `transaction_data.csv` file into the `data` folder of your local project directory, replacing the existing file.
+
+
 # Contact:
 Author: https://www.linkedin.com/in/kaushik-puttaswamy-317475148
 
