@@ -4,7 +4,7 @@
 
 This project demonstrates real-time data streaming using Apache Kafka and Apache Spark. It includes components for generating sample data, producing it to Kafka, and processing it using Spark Streaming. Docker is utilized for containerization, making deployment easier across different environments.
 
-# Real-time streaming data architecture
+# Real-time streaming data architecture:
 
 ![Real-time streaming data architecture](https://github.com/Kaushik-Puttaswamy/Real-Time_Data_Streaming_Project/raw/main/Real-time%20streaming%20data%20architecture.png)
 
