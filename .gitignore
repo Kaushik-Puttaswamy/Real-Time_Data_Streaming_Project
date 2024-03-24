@@ -1,0 +1,21 @@
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+
+# Ignore Docker related files
+docker-compose.override.yml
+
+# Ignore log files
+*.log
+
+# Ignore environment files
+.env
+
+# Ignore virtual environment
+venv/
+
+# Ignore data files
+/data/
+
+# Ignore app files
+/app/
