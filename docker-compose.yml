@@ -1,0 +1,197 @@
+version: '3'
+
+services:
+  # Zookeeper Service
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    hostname: zookeeper
+    container_name: zookeeper
+    networks:
+      - confluent
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo 'ruok' | nc localhost 2181"]
+      interval: 10s
+      timeout: 60s
+      retries: 10
+
+  # Kafka Broker Service
+  broker:
+    image: confluentinc/cp-server:7.6.0
+    hostname: broker
+    container_name: broker
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    networks:
+      - confluent
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    volumes:
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    environment:
+      # Kafka Broker Environment Variables
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema_registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'false'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'  
+    healthcheck:
+      test: ["CMD", "bash", "-c", 'nc -z localhost 9092']
+      interval: 10s
+      timeout: 60s
+      retries: 20
+
+  # Schema Registry Service
+  schema_registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    hostname: schema_registry
+    container_name: schema_registry
+    depends_on:
+      broker:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    environment:
+      # Schema Registry Environment Variables
+      SCHEMA_REGISTRY_HOST_NAME: schema_registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker:29092"
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081   
+    networks:
+      - confluent
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Control Center Service
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:7.6.0
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      broker:
+        condition: service_healthy
+      schema_registry:
+        condition: service_healthy
+    ports:
+      - "9021:9021"
+    volumes:
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    environment:
+      # Control Center Environment Variables
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: "broker:29092"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema_registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      CONFLUENT_METRICS_ENABLE: "false"
+      PORT: 9021
+    networks:
+      - confluent
+
+  # Kafka Producer Service
+  kafka-producer:
+    image: bitnami/python:3.11
+    container_name: kafka-producer
+    networks:
+      - confluent
+    env_file:
+      - ./.env
+    volumes:
+      - ./app:/app
+      - ./data:/data
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    command: >
+      sh -c "apt-get update && apt-get install -y && pip install pandas==2.1.0 kafka-python && python /app/kafka_producer.py"
+    depends_on:
+      - broker
+  
+  # Spark Master Service
+  spark-master:
+    image: custom-spark:latest
+    container_name: spark-master
+    hostname: spark-master
+    networks:
+      - confluent
+    env_file:
+      - ./.env
+    ports:
+      - "8090:8080"
+      - "7077:7077"
+    command: /opt/bitnami/spark/sbin/start-master.sh
+    volumes:
+      - ./app:/app
+      - ./data:/data
+      - ./scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    environment:
+      # Spark Master Environment Variables
+      SPARK_MASTER_HOST: spark-master
+      SPARK_EXTRA_CLASSPATH: "/opt/bitnami/spark/jars/*"
+    user: "root"  
+  
+  # Spark Worker Service
+  spark-worker:
+    image: custom-spark:latest
+    container_name: spark-worker
+    hostname: spark-worker
+    networks:
+      - confluent
+    env_file:
+      - ./.env
+    volumes:
+      - ./app:/app
+      - ./data:/data
+    environment:
+      # Spark Worker Environment Variables
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 1G
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_EXTRA_CLASSPATH: "/opt/bitnami/spark/jars/*"
+    user: "root"  
+    depends_on:
+      - spark-master
+ 
+  # Cassandra Service
+  cassandra:
+    image: cassandra:4.1.4
+    container_name: cassandra
+    hostname: cassandra
+    networks:
+      - confluent
+    env_file:
+      - ./.env
+    ports:
+      - "9042:9042"
+    environment:
+      # Cassandra Environment Variables
+      - MAX_HEAP_SIZE=512M
+      - HEAP_NEWSIZE=100M
+      - CASSANDRA_USERNAME=cassandra
+      - CASSANDRA_PASSWORD=cassandra
+    
+networks:
+  confluent:
