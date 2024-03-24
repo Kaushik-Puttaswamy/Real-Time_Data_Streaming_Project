@@ -9,7 +9,7 @@ This project demonstrates real-time data streaming using Apache Kafka and Apache
 ![Real-time streaming data architecture](https://github.com/Kaushik-Puttaswamy/Real-Time_Data_Streaming_Project/raw/main/Real-time%20streaming%20data%20architecture.png)
 
 
-# Folder Structure:
+# Project Folder Structure:
 
 Real-Time_Data_Streaming_Project/
 
