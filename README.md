@@ -73,6 +73,10 @@ Ensure that necessary environment variables are configured in the .env file.
 ```docker-compose up -d```
 This command will build and start the Docker containers defined in docker-compose.yml.
 
+To display information about all containers managed by Docker Compose
+
+```docker-compose ps -a```
+
 # Run the Scripts:
 
 # Spark Streaming:
