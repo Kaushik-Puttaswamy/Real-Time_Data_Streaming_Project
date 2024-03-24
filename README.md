@@ -83,7 +83,7 @@ Ensure that necessary environment variables are configured in the .env file.
 
 This command will build and start the Docker containers defined in docker-compose.yml.
 
-To display information about all containers managed by Docker Compose:
+Command to display information about all containers managed by Docker Compose:
 
 ```docker-compose ps -a```
 
