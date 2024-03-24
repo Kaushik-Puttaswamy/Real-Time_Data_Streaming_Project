@@ -83,7 +83,7 @@ Run the docker build command to build the Docker image from the Dockerfile.
 
 ```docker build -t custom-spark .```
 
-# Verify the image:
+# Verify the Image:
 
 Verify that the image was created successfully by running:
 
