@@ -79,7 +79,7 @@ Ensure that necessary environment variables are configured in the .env file.
 
 # Build the Docker Image:
 
-Run the docker build command to build the Docker image from the Dockerfile
+Run the docker build command to build the Docker image from the Dockerfile.
 
 ```docker build -t custom-spark .```
 
