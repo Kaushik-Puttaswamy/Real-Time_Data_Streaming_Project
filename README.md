@@ -99,6 +99,12 @@ Command to display information about all containers managed by Docker Compose:
 
 ```docker-compose ps -a```
 
+#  Verify Kafka Producer Logs:
+
+After ensuring that all containers are successfully running, confirm whether the Kafka producer is generating messages by checking its logs.
+
+```docker-compose logs kafka-producer```
+
 # Run the Scripts:
 
 # Spark Streaming:
