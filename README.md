@@ -158,7 +158,7 @@ Make sure that Docker and Docker Compose are installed on your system.
 
 
 # Contact:
-Author: https://www.linkedin.com/in/kaushik-puttaswamy-data-analyst/
+Author: [LinkedIn](https://www.linkedin.com/in/kaushik-puttaswamy-data-analyst/)
 
 
 
